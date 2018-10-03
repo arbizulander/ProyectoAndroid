@@ -25,7 +25,7 @@ public class ListadoCancionesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listado_canciones);
 
-        String dato = getIntent().getStringExtra("parametro");
+        //String dato = getIntent().getStringExtra("parametro");
         //TextView text = (TextView) findViewById(R.id.idText);
         final ListView milista = (ListView)findViewById(R.id.milista);
 
