@@ -1,23 +1,24 @@
 package com.example.ik_2dm3.spotifygrupo2;
 
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -34,9 +35,10 @@ public class MainActivity extends AppCompatActivity {
     private ListView dentroartistaView;
     private Boolean isEstaEnArray;
 
+
     MediaPlayer mp;
     Context cont = this;
-
+    int i = 0;
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -92,6 +94,46 @@ public class MainActivity extends AppCompatActivity {
         isEstaEnArray = false;
 
         ListarCanciones();
+
+        mp = MediaPlayer.create(this, songList.get(0).getID());
+        mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            public void onCompletion(MediaPlayer mp) {
+
+                i++;
+                Log.e("myTag", "Se ha sumado 1 y i es " + i);
+
+
+                if (i == songList.size()) {
+                    i=0;
+                    Log.e("myTag", "Se ha llegado al final del array y la i es " + i);
+                    return;
+
+                }
+
+                AssetFileDescriptor afd = getBaseContext().getResources().openRawResourceFd(songList.get(i).getID());
+
+                try {
+                    mp.reset();
+                    mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getDeclaredLength());
+                    mp.prepare();
+                    mp.start();
+                    afd.close();
+                }
+                catch (IllegalArgumentException e) {
+                    Log.e("myTag", "IllegalArgumentException Unable to play audio : " + e.getMessage());
+                }
+                catch (IllegalStateException e) {
+                    Log.e("myTag", "IllegalStateException Unable to play audio : " + e.getMessage());
+                }
+                catch (IOException e) {
+                    Log.e("myTag", "IOException Unable to play audio : " + e.getMessage());
+                }
+
+
+            }
+
+        });
+
     }
 
     public void ListarCanciones(){
@@ -115,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
                 String itemval = (String)songView.getItemAtPosition(position);
                 Toast.makeText(getApplicationContext(), "Position: "+ item+" - Valor: "+itemval, Toast.LENGTH_LONG).show();
 
-                reproducir(cont, item);
+                //reproducir(cont, item);
             }
 
         });
@@ -195,7 +237,8 @@ public class MainActivity extends AppCompatActivity {
                         String itemval = (String)dentrogeneroView.getItemAtPosition(position);
                         Toast.makeText(getApplicationContext(), "Position: "+ item+" - Valor: "+itemval, Toast.LENGTH_LONG).show();
 
-                        reproducir(cont, item);
+                        mp.start();
+                        //reproducir(cont, item);
                     }
 
                 });
@@ -282,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
                         String itemval = (String)dentroartistaView.getItemAtPosition(position);
                         Toast.makeText(getApplicationContext(), "Position: "+ item+" - Valor: "+itemval, Toast.LENGTH_LONG).show();
 
-                        reproducir(cont, item);
+                        //reproducir(cont, item);
                     }
 
                 });
@@ -318,10 +361,86 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void reproducir (Context cont, int pos){
+    /*public void reproducir (Context cont, int pos){
         mp = MediaPlayer.create(cont, songList.get(pos).getID());
         mp.start();
+    }*/
+
+    //ACCIONES DE REPRODUCCION//
+
+    public void PlayPause(View v){
+
+
+        AssetFileDescriptor afd = getBaseContext().getResources().openRawResourceFd(songList.get(0).getID());
+
+        if (mp.isPlaying()) {
+
+            mp.pause();
+            Log.e("myTag", "Has pausado la cancion en el " + i);
+
+        } else {
+
+            try {
+                mp.reset();
+                mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getDeclaredLength());
+                mp.prepare();
+                mp.start();
+                afd.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
+
+    public void NextSong(View v){
+
+        i++;
+        Log.e("myTag", "Has saltado a la cancion" + i);
+
+        AssetFileDescriptor afd = getBaseContext().getResources().openRawResourceFd(songList.get(i).getID());
+
+        try {
+            mp.reset();
+            mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getDeclaredLength());
+            mp.prepare();
+            mp.start();
+            afd.close();
+        }
+        catch (IOException ex) {
+            Log.e("myTag", "IllegalArgumentException Unable to play audio : " + ex.getMessage());
+        }
+
+    }
+
+    public void PrevSong(View v){
+
+        mp.getCurrentPosition();
+
+        if(mp.isPlaying() && mp.getCurrentPosition() < 5000){
+            mp.seekTo(0);
+            mp.start();
+            Log.e("myTag", "Cancion al principio");
+        }
+        else{
+            i--;
+            Log.e("myTag", "Has ido atras a la cancion" + i);
+
+            AssetFileDescriptor afd = getBaseContext().getResources().openRawResourceFd(songList.get(i).getID());
+
+            try {
+                mp.reset();
+                mp.setDataSource(afd.getFileDescriptor(), afd.getStartOffset(), afd.getDeclaredLength());
+                mp.prepare();
+                mp.start();
+                afd.close();
+            }
+            catch (IOException ex) {
+                Log.e("myTag", "IllegalArgumentException Unable to play audio : " + ex.getMessage());
+            }
+        }
+    }
+
 
 }
 
