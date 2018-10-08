@@ -1,0 +1,327 @@
+package com.example.ik_2dm3.spotifygrupo2;
+
+import android.content.Context;
+import android.media.MediaPlayer;
+import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
+import android.support.v7.app.AppCompatActivity;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+
+public class MainActivity extends AppCompatActivity {
+
+    private ArrayList<Song> songList;
+    private String[] titulo;
+    private String[] genero;
+    private String[] artista;
+    private String[] artistas_canciones;
+    private String[] canciones;
+    private ListView songView;
+    private ListView generoView;
+    private ListView dentrogeneroView;
+    private ListView artistaView;
+    private ListView dentroartistaView;
+    private Boolean isEstaEnArray;
+
+    MediaPlayer mp;
+    Context cont = this;
+
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.navigation_home:
+                    ListarCanciones();
+                    return true;
+                case R.id.navigation_dashboard:
+                    isEstaEnArray = false;
+                    ListarGeneros();
+                    return true;
+                case R.id.navigation_notifications:
+                    isEstaEnArray = false;
+                    ListarArtistas();
+                    return true;
+
+            }
+            return false;
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        songView = (ListView)findViewById(R.id.song_list);
+        generoView = (ListView)findViewById(R.id.genero_lista);
+        artistaView = (ListView)findViewById(R.id.artista_lista);
+        dentrogeneroView = (ListView)findViewById(R.id.dentrogenero_lista);
+        dentroartistaView = (ListView)findViewById(R.id.dentrogenero_lista);
+
+        songList = new ArrayList<Song>();
+
+        Song s1 = new Song (R.raw.s1,"Cancion 1","ccc", "Blues");
+        Song s2 = new Song (R.raw.s2,"Cancion 2","bbb", "Jazz");
+        Song s3 = new Song (R.raw.s3,"Cancion 3","bbb", "Rap");
+        Song s4 = new Song (R.raw.s4,"Cancion 4","aaa", "Blues");
+        Song s5 = new Song (R.raw.s5,"Cancion 5","aaa", "Blues");
+
+        songList.add(s1);
+        songList.add(s2);
+        songList.add(s3);
+        songList.add(s4);
+        songList.add(s5);
+
+        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+
+        isEstaEnArray = false;
+
+        ListarCanciones();
+    }
+
+    public void ListarCanciones(){
+        OcultarMostrarListView(1);
+
+        //genero.clear();
+        titulo = new String [songList.size()];
+
+        for (int i = 0; i<titulo.length; i++){
+            titulo[i] = songList.get(i).getTitle();
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, titulo);
+        songView.setAdapter(adapter);
+
+        songView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+                int item = position;
+                String itemval = (String)songView.getItemAtPosition(position);
+                Toast.makeText(getApplicationContext(), "Position: "+ item+" - Valor: "+itemval, Toast.LENGTH_LONG).show();
+
+                reproducir(cont, item);
+            }
+
+        });
+    }
+
+    public void ListarGeneros(){
+        OcultarMostrarListView(2);
+
+        ArrayList<String> Gen;
+        Gen = new ArrayList<String>();
+
+        Gen.add(songList.get(0).getGenero());
+
+       for (int i = 0; i<songList.size();i++)
+        {
+            for (int e = 0; e<Gen.size();e++) {
+                if (songList.get(i).getGenero() == Gen.get(e)) {
+                    isEstaEnArray = true;
+                    break;
+                }
+                else
+                {
+                    isEstaEnArray = false;
+                    //Gen.add(songList.get(i).getGenero());
+                    //break;
+                }
+            }
+            if (!isEstaEnArray){
+                Gen.add(songList.get(i).getGenero());
+            }
+        }
+
+        genero = new String[Gen.size()];
+        for (int i = 0; i<Gen.size(); i++){
+            genero[i] = Gen.get(i);
+        }
+        Arrays.sort(genero);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, genero);
+        generoView.setAdapter(adapter);
+
+        generoView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+                OcultarMostrarListView(0);
+                dentrogeneroView.setVisibility(View.VISIBLE);
+                int item = position;
+                String itemval = (String)generoView.getItemAtPosition(position);
+                //Toast.makeText(getApplicationContext(), "Position: "+ item+" - Valor: "+itemval, Toast.LENGTH_LONG).show();
+
+                ArrayList<String> Detallegenero;
+                Detallegenero = new ArrayList<String>();
+                //Detallegenero.add(songList.get(0).getArtist());
+
+                for (int i = 0; i<songList.size();i++)
+                {
+                    if(songList.get(i).getGenero().equals(itemval)){
+                        Detallegenero.add(songList.get(i).getTitle());
+                    }
+                }
+
+                canciones = new String[Detallegenero.size()];
+                for (int i = 0; i<Detallegenero.size(); i++){
+                    canciones[i] = Detallegenero.get(i);
+                }
+                Arrays.sort(canciones);
+
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(cont, android.R.layout.simple_list_item_1, canciones);
+                dentrogeneroView.setAdapter(adapter);
+
+                dentrogeneroView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+                        int item = position;
+                        String itemval = (String)dentrogeneroView.getItemAtPosition(position);
+                        Toast.makeText(getApplicationContext(), "Position: "+ item+" - Valor: "+itemval, Toast.LENGTH_LONG).show();
+
+                        reproducir(cont, item);
+                    }
+
+                });
+
+               //reproducir(cont, item);
+            }
+
+        });
+    }
+
+    public void ListarArtistas(){
+        OcultarMostrarListView(3);
+        //String gen = songList.get(0).getGenero();
+        //int cont = 0;
+
+        ArrayList<String> Art;
+        Art = new ArrayList<String>();
+        Art.add(songList.get(0).getArtist());
+
+        for (int i = 0; i<songList.size();i++)
+        {
+            for (int e = 0; e<Art.size();e++) {
+                if (songList.get(i).getArtist() == Art.get(e)) {
+                    isEstaEnArray = true;
+                    break;
+                }
+                else
+                {
+                    isEstaEnArray = false;
+                    //Art.add(songList.get(i).getArtist());
+                    //break;
+                }
+            }
+            if (!isEstaEnArray){
+                Art.add(songList.get(i).getArtist());
+            }
+        }
+
+        artista = new String[Art.size()];
+        for (int i = 0; i<Art.size(); i++){
+            artista[i] = Art.get(i);
+        }
+        Arrays.sort(artista);
+
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, artista);
+        artistaView.setAdapter(adapter);
+
+        artistaView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+                OcultarMostrarListView(0);
+                dentroartistaView.setVisibility(View.VISIBLE);
+                int item = position;
+                String itemval = (String)artistaView.getItemAtPosition(position);
+                //Toast.makeText(getApplicationContext(), "Position: "+ item+" - Valor: "+itemval, Toast.LENGTH_LONG).show();
+
+                ArrayList<String> Detalleartista;
+                Detalleartista = new ArrayList<String>();
+                //Detallegenero.add(songList.get(0).getArtist());
+
+                for (int i = 0; i<songList.size();i++)
+                {
+                    if(songList.get(i).getArtist().equals(itemval)){
+                        Detalleartista.add(songList.get(i).getTitle());
+                    }
+                }
+
+                artistas_canciones = new String[Detalleartista.size()];
+                for (int i = 0; i<Detalleartista.size(); i++){
+                    artistas_canciones[i] = Detalleartista.get(i);
+                }
+                Arrays.sort(artistas_canciones);
+
+                ArrayAdapter<String> adapter = new ArrayAdapter<String>(cont, android.R.layout.simple_list_item_1, artistas_canciones);
+                dentroartistaView.setAdapter(adapter);
+
+                dentroartistaView.setOnItemClickListener(new AdapterView.OnItemClickListener(){
+
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id){
+                        int item = position;
+                        String itemval = (String)dentroartistaView.getItemAtPosition(position);
+                        Toast.makeText(getApplicationContext(), "Position: "+ item+" - Valor: "+itemval, Toast.LENGTH_LONG).show();
+
+                        reproducir(cont, item);
+                    }
+
+                });
+            }
+
+        });
+    }
+
+    public void OcultarMostrarListView (int i){
+        songView.setVisibility(View.INVISIBLE);
+        generoView.setVisibility(View.INVISIBLE);
+        artistaView.setVisibility(View.INVISIBLE);
+        dentrogeneroView.setVisibility(View.INVISIBLE);
+        dentroartistaView.setVisibility(View.INVISIBLE);
+
+        switch (i){
+            case 0:
+                songView.setVisibility(View.INVISIBLE);
+                generoView.setVisibility(View.INVISIBLE);
+                artistaView.setVisibility(View.INVISIBLE);
+                dentrogeneroView.setVisibility(View.INVISIBLE);
+                dentroartistaView.setVisibility(View.INVISIBLE);
+                break;
+            case (1):
+                songView.setVisibility(View.VISIBLE);
+                break;
+            case (2):
+                generoView.setVisibility(View.VISIBLE);
+                break;
+            case (3):
+                artistaView.setVisibility(View.VISIBLE);
+                break;
+        }
+    }
+
+    public void reproducir (Context cont, int pos){
+        mp = MediaPlayer.create(cont, songList.get(pos).getID());
+        mp.start();
+    }
+
+}
+
